@@ -12,67 +12,68 @@ library(ggplot2)
 ############ 1 dimension IGMRF #########################
 
 ## 1st order random walk, joint density (x1,x2,...,x100)
-RW1 <- function(yr){
-  R1                                                  <- matrix(0,yr,yr)
-  R1[1,1:2] <- c(1,-1);R1[yr,(yr-1):yr]               <- c(-1,1)
-  for (i in 2:(yr-1)) R1[i,(i-1):(i+1)]               <- c(-1,2,-1)
-  eigenNoData                                         <- eigen(R1)
-  eigenNoData$values[yr]                              <- Inf 
-  EigenValGenInv                                      <- 1/eigenNoData$val
-  EigenValGenInv[yr]                                  <- 0   
-  SigmaGenInvNoTheta1                                 <- eigenNoData$vec %*% (EigenValGenInv * t(eigenNoData$vec))
+RW1 <- function(yr){                                                            # number of nodes (or years) 
+  R1                                           <- matrix(0,yr,yr)               # defining the precision matrix
+  R1[1,1:2] <- c(1,-1);R1[yr,(yr-1):yr]        <- c(-1,1)                       # first and last row
+  for (i in 2:(yr-1)) R1[i,(i-1):(i+1)]        <- c(-1,2,-1)                    # central rows 
+  eigenNoData                                  <- eigen(R1)                     # eigenvalues and eigenvector
+  #eigenNoData$values[yr]                      <- Inf 
+  EigenValGenInv                               <- 1/eigenNoData$val             # the inverse of the eigenvalues
+  EigenValGenInv[yr]                           <- 0                             # setting the inverse eigenvalues =0 too
+  SigmaGenInvNoTheta1                          <- eigenNoData$vec %*% (EigenValGenInv * t(eigenNoData$vec))# calculating the Sigma* matrix
   #plot(log(diag(SigmaGenInvNoTheta1)),xlab = "Node i", ylab="log-Marginal Standard Deviation") #with log 
   #plot(diag(SigmaGenInvNoTheta1),xlab = "Node i", ylab="Marginal Standard Deviation")
-  return(sigma_ref_rw1 <- exp((1/yr)*sum(0.5*log(diag(SigmaGenInvNoTheta1)))) ) #page 5
+  return(sigma_ref_rw1                         <- exp((1/yr)*sum(0.5*log(diag(SigmaGenInvNoTheta1)))) ) # page 5, calculating the Sigma reference
 }
+
 ## 2nd order random walk, joint density (x1,x2,...,x100)
-RW2                                                   <- function(yr){
-  R2                                                  <- matrix(0,yr,yr)
-  R2[1,1:3] <- c(1,-2,1);R2[yr,(yr-2):yr]             <- c(1,-2,1)
-  R2[2,1:4]                                           <- c(-2,5,-4,1);R2[yr-1,(yr-3):yr] <- c(1,-4,5,-2)
-  for (i in 3:(yr-2))   R2[i,(i-2):(i+2)]             <- c(1,-4,6,-4,1)
-  eigenNoData                                         <- eigen(R2)
-  eigenNoData$values[(yr-1):yr]                       <- Inf 
-  EigenValGenInv                                      <- 1/eigenNoData$val 
-  EigenValGenInv[(yr-1):yr]                           <- 0  
-  SigmaGenInvNoTheta2                                 <- eigenNoData$vec %*% (EigenValGenInv * t(eigenNoData$vec))
+RW2                                            <- function(yr){                 # number of nodes (or years) 
+  R2                                           <- matrix(0,yr,yr)               # defining the precision matrix
+  R2[1,1:3] <- c(1,-2,1);R2[yr,(yr-2):yr]      <- c(1,-2,1)                     # first and last row
+  R2[2,1:4]                                    <- c(-2,5,-4,1);R2[yr-1,(yr-3):yr] <- c(1,-4,5,-2) #2nd and 2nd last row
+  for (i in 3:(yr-2))   R2[i,(i-2):(i+2)]      <- c(1,-4,6,-4,1)                # central rows
+  eigenNoData                                  <- eigen(R2)                     # eigenvalues and eigenvector
+  #eigenNoData$values[(yr-1):yr]                <- Inf 
+  EigenValGenInv                               <- 1/eigenNoData$val             # the inverse of the eigenvalues
+  EigenValGenInv[(yr-1):yr]                    <- 0                             # setting the inverse eigenvalues =0 too
+  SigmaGenInvNoTheta2                          <- eigenNoData$vec %*% (EigenValGenInv * t(eigenNoData$vec)) # calculating the Sigma* matrix
   #plot(log(diag(SigmaGenInvNoTheta2)),xlab = "Node i", ylab="log-Marginal Standard Deviation")
   #plot(diag(SigmaGenInvNoTheta2),xlab = "Node i", ylab="Marginal Standard Deviation")
-  return(sigma_ref_rw2 <- exp((1/yr)*sum(0.5*log(diag(SigmaGenInvNoTheta2)))) )
+  return(sigma_ref_rw2                         <- exp((1/yr)*sum(0.5*log(diag(SigmaGenInvNoTheta2)))) ) # page 5, calculating the Sigma reference
 }
 #### 2 dimensions IGMRF ####
 
 ## 2D second order random walk, (bound 1, Yue & Speckman )
 RW2D                                                  <- function(yr){
-  mtx3 <- diag(1,yr) ;mtx1 <- mtx2 <- mtx4 <- mtx5<- mtx6 <- matrix(0,yr,yr)
+  mtx3 <- diag(1,yr) ;mtx1 <- mtx2 <- mtx4 <- mtx5<- mtx6 <- matrix(0,yr,yr)    # define  submatrices
   # 2nd order random walk
-  mtx1[1,1:3] <- mtx1[yr,yr:(yr-2)]                   <- c(6,-5,1)  
+  mtx1[1,1:3] <- mtx1[yr,yr:(yr-2)]                   <- c(6,-5,1)              # submatrix of precision matrix
   mtx1[2,1:4] <- mtx1[(yr-1),yr:(yr-3)]               <- c(-5,12,-6,1) 
   for (i in 3:(yr-2)) mtx1[i,(i-2):(i+2)]             <- c(1,-6,12,-6,1) 
   #1st order random walk
-  mtx2[1,1:2] <-  mtx2[yr,yr:(yr-1)]                  <- c(-5,2)
+  mtx2[1,1:2] <-  mtx2[yr,yr:(yr-1)]                  <- c(-5,2)                # submatrix of precision matrix
   for (i in 2:(yr-1)) mtx2[i,(i-1):(i+1)]             <- c(2,-7,2)
   # 2nd order random walk
-  mtx4[1,1:3] <- mtx4[yr,yr:(yr-2)]                   <- c(12,-7,1)
+  mtx4[1,1:3] <- mtx4[yr,yr:(yr-2)]                   <- c(12,-7,1)             # submatrix of precision matrix
   mtx4[2,1:4] <- mtx4[(yr-1),yr:(yr-3)]               <- c(-7,20,-8,1)
   for (i in 3:(yr-2)) mtx4[i,(i-2):(i+2)]             <- c(1,-8,20,-8,1) 
   #1st order random walk
-  mtx5[1,1:2] <-  mtx5[yr,yr:(yr-1)]                  <- c(-6,2)
+  mtx5[1,1:2] <-  mtx5[yr,yr:(yr-1)]                  <- c(-6,2)                # submatrix of precision matrix
   for (i in 2:(yr-1)) mtx5[i,(i-1):(i+1)]             <- c(2,-8,2)
-  R2D                                                 <- matrix(0,yr^2,yr^2)
+  R2D                                                 <- matrix(0,yr^2,yr^2)    # define precision matrix yr^2xyr^2
   R2D[1:yr,1:(3*yr)]                                  <- cbind(mtx1,mtx2,mtx3)
   R2D[((yr-1)*yr+1):(yr^2),((yr-3)*yr+1):(yr^2)]      <- cbind(mtx3,mtx2,mtx1)
   R2D[(yr+1):(2*yr),1:(4*yr)]                         <- cbind(mtx2,mtx4,mtx5,mtx3)
   R2D[((yr-2)*yr+1):((yr-1)*yr),((yr-4)*yr+1):(yr^2)] <- cbind(mtx3,mtx5,mtx4,mtx2)
-  for ( i in 3:(yr-2)) R2D[((i-1)*yr+1):(i*yr),((i-3)*yr+1):((i+2)*yr)] <- cbind(mtx3,mtx5,mtx4,mtx5,mtx3)
+  for ( i in 3:(yr-2)) R2D[((i-1)*yr+1):(i*yr),((i-3)*yr+1):((i+2)*yr)] <- cbind(mtx3,mtx5,mtx4,mtx5,mtx3)# final matrix of 
   #print(qr(R2D)$rank)
-  eigenNoData                                         <- eigen(R2D)
+  eigenNoData                                         <- eigen(R2D)             # eigenvalues and eigenvectors  
   eigenNoData$values[(yr^2-2):(yr^2)]                 <- Inf 
   EigenValGenInv                                      <- 1/eigenNoData$val
   EigenValGenInv[(yr^2-2):(yr^2)]                     <- 0  
-  SigmaGenInvNoTheta3                                 <- eigenNoData$vec %*% (EigenValGenInv * t(eigenNoData$vec))
+  SigmaGenInvNoTheta3                                 <- eigenNoData$vec %*% (EigenValGenInv * t(eigenNoData$vec))#calculate  Sigma* 
   #plot(log(diag(SigmaGenInvNoTheta3)),xlab = "Node i", ylab="Marginal Standard Deviation")
-  return(sigma_ref_rw2D <- exp((1/(yr^2))*sum(0.5*log(diag(SigmaGenInvNoTheta3)))) )
+  return(sigma_ref_rw2D <- exp((1/(yr^2))*sum(0.5*log(diag(SigmaGenInvNoTheta3)))) )  #calculate Sigma_ref
 }
 
 #Figure 1
@@ -80,7 +81,6 @@ RW2D                                                  <- function(yr){
 RW1(50)
 RW2(50)
 RW2D(50) #it takes time
-
 
 ## 2D Rue&Held, 1st suggestion (Torus 1)
 RW2D_1                                                <- function(yr){
@@ -162,7 +162,7 @@ RW2D_terz                                             <- function(yr){
   
   eigenNoData                                         <- eigen(R2D)
   eigenNoData$values[(yr^2-2):(yr^2)]                 <- Inf 
-  EigenValGenInv                                      <- 1/eigenNoData$val##!!!!! 
+  EigenValGenInv                                      <- 1/eigenNoData$val 
   EigenValGenInv[(yr^2-2):(yr^2)]                     <- 0  
   SigmaGenInvNoTheta3                                 <- eigenNoData$vec %*% (EigenValGenInv * t(eigenNoData$vec))
   plot(log(diag(SigmaGenInvNoTheta3)),xlab = "Node i", ylab="Marginal Standard Deviation")
@@ -208,18 +208,17 @@ for ( i in c(11,20,40)){#,100
 }
 ## Section 4 ##
 
-yr                                                    <- 40
-s_RW2                                                 <- RW2(yr=yr)
-s_RW2D                                                <- RW2D(yr=yr) 
-mu                                                    <- 7         
-b                                                     <- 2
-alpha                                                 <- 0.001
+yr                                                    <- 40                     # choosing 40 nodes
+s_RW2                                                 <- RW2(yr=yr)             # calculate the reference stndard deviation of second order 1D
+s_RW2D                                                <- RW2D(yr=yr)            # calculate the reference stndard deviation of second order 2D
+mu                                                    <- 7                      # initial mean value
+b                                                     <- 2                      # initial standard deviation
+alpha                                                 <- 0.001                  # quantile
 
-#upper limits of the table 10. The U formula is used
-
+# upper limits of the table 10. The U formula is used
 # Normal distribution
-U_rw2                                                 <- sqrt( b*(s_RW2^2)/qnorm(alpha,mean=mu,sd=1))
-U_rw2D                                                <- sqrt( b*(s_RW2D^2)/qnorm(alpha,mean=mu,sd=1))
+U_rw2                                                 <- sqrt( b*(s_RW2^2)/qnorm(alpha, mean=mu, sd=1) )
+U_rw2D                                                <- sqrt( b*(s_RW2D^2)/qnorm(alpha,mean=mu, sd=1) )
 Us1                                                   <- c(U_rw2,U_rw2D)
 summary(Us1)                     #Based on median we choose u=0.5
 u1                                                    <- round(summary(Us1)[[3]],3)
@@ -237,8 +236,8 @@ s_RW22                                                <- RW2(yr=20)
 s_RW22D                                               <- RW2D(yr=20) 
 
 #TABLE 3
-for ( i in c(1,2,3)){
-  for ( j in c(5,11,20,40)){
+for ( i in c(1,2,3)){                               # different values of b: initial standard deviation
+  for ( j in c(5,11,20,40)){                        # values of nodes
     print(paste("b is: ",i))  
     print(paste("years are: ",j)) 
     s_RW1                                              <- RW1(yr=j) 
@@ -262,7 +261,7 @@ for ( i in c(1,2,3)){
 #TABLE 4 
 
 k                <- 1;       m                         <- c(7,8,10,12)
-for ( i in c(0.9,1.2,1.59,3.55)){
+for ( i in c(0.9,1.2,1.59,3.55)){                      # different initial standard deviations that want scaling
   j<- 11
   print(paste("b is: ",i))  
   s_RW2                                                <- RW2(yr=j)
