@@ -1,6 +1,6 @@
 #Paper analysis: Scaling intrinsic Gaussian Markov random field priors in spatial modelling
 ###### 1st order random walk, joint density (x1,x2,...x100)
-RW1 <- function(yr){
+RW1 <- function(yr){                                                  # number of nodes (or years) to take into account
   R1                             <- matrix(0,yr,yr)
   R1[1,1:2]                      <- c(1,-1);R1[yr,(yr-1):yr]<-c(-1,1)
   for (i in 2:(yr-1)) R1[i,(i-1):(i+1)] <- c(-1,2,-1)
