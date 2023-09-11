@@ -1,4 +1,3 @@
-# Scaling_Priors_IGMRF_2D
-We describe how we can scale prior distribution for a two-dimensional Intrinsic Gaussian Markov Random Field( IGMRF) model. Choosing different number of nodes (or years ), we make comparison between the one-dimensional and two-dimensional IGMRFs and also we compare different kinds of two-dimensional IGMRF together. All the calculations for producing the matrices and plots presented in the paper are shown. Application in blood pressure data is shown.
-In this repository you can find code for both the one dimensional and two dimensional IGMRF for a better understanding of the ideas. 
 
+Code for one-dimensional
+In the code presented we describe how the precision matrices of the one-dimensional 1st order and 2nd order random walk are presented changing each time the number of nodes. Based on the precision matrices and the number of nodes we show the calculations for the reference standard deviation. Afterwards, having the initial standard deviation, b we define the Upper level for the 1st and 2nd order random walk in order to proceed to the scaling of the standard deviation for each case. All the calculations for producing the matrices and plots presented in the paper are shown.
