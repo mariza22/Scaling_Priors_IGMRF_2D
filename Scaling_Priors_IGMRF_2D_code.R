@@ -78,9 +78,9 @@ RW2D                                                  <- function(yr){
 
 #Figure 1
 
-RW1(50)
-RW2(50)
-RW2D(50) #it takes time
+RW1(10)
+RW2(10)
+RW2D(10) #it takes time
 
 ## 2D Rue&Held, 1st suggestion (Torus 1)
 RW2D_1                                                <- function(yr){
@@ -172,8 +172,9 @@ RW2D_terz                                             <- function(yr){
 ## Section 3 ##
 
 # FIGURE 2
-s_RW1                                                 <- s_RW2 <- s_RW2D <- s_RW2D_terz <- s_RW2D_1<-s_RW2D_2 <-rep(0,12)
-nodes   <- seq(5,60,5);k                              <- 1
+nodes   <- seq(5,50,5);k                              <- 1
+s_RW1                                                 <- s_RW2 <- s_RW2D <- s_RW2D_terz <- s_RW2D_1<-s_RW2D_2 <-rep(0,length(nodes))
+
 for (i in nodes){
   s_RW1[k]                                            <- RW1(yr=i)  
   s_RW2[k]                                            <- RW2(yr=i) 
@@ -189,9 +190,9 @@ lines(nodes,s_RW2D,col=3,lty=4)
 lines(nodes,s_RW2D_terz,col=4,lty=4)
 legend(5, 20, c("RW1","RW2","RW2D","RW2D2"), col = 1:4, lty = 2:4,ncol = 3)
 
-df                                                    <- data.frame(Nodes = seq(5,60,5),
+df                                                    <- data.frame(Nodes = nodes,
                                                                     Standard_Deviation = c(s_RW1,s_RW2,s_RW2D),#,s_RW2D_terz
-                                                                    Type = rep(c("s_RW1","s_RW2","s_RW2D"),each=12))#,"s_RW2D_terz"
+                                                                    Type = rep(c("s_RW1","s_RW2","s_RW2D"),each=length(nodes)))#,"s_RW2D_terz"
 
 gg                                                    <- ggplot(data=df, aes(x=Nodes,y=Standard_Deviation,group=Type))+
   geom_line(aes(color=Type))+
@@ -207,6 +208,8 @@ for ( i in c(11,20,40)){#,100
   print(RW2D_terz(i) )
 }
 ## Section 4 ##
+## setting number of nodes 40 we will implement the steps for scaling 
+# between the one- and two-dimensional second order random walk
 
 yr                                                    <- 40                     # choosing 40 nodes
 s_RW2                                                 <- RW2(yr=yr)             # calculate the reference stndard deviation of second order 1D
@@ -223,8 +226,8 @@ Us1                                                   <- c(U_rw2,U_rw2D)
 summary(Us1)                     #Based on median we choose u=0.5
 u1                                                    <- round(summary(Us1)[[3]],3)
 #I will use the formula of U in respect of beta taking the median of the summary(u)
-b_rw2                                                 <- (u1^2)*(qnorm(alpha, mean=mu, sd=1))/(s_RW2^2)
-b_rw2D                                                <- (u1^2)*(qnorm(alpha, mean=mu, sd=1))/(s_RW2D^2)
+b_rw2                                                 <- (u1^2)*(qnorm(alpha, mean=mu, sd=1))/(s_RW2^2) # the new standard deviation for 1D second order random walk
+b_rw2D                                                <- (u1^2)*(qnorm(alpha, mean=mu, sd=1))/(s_RW2D^2)# the new standard deviation for 2D second order random walk
 print(c(b_rw2,b_rw2D))
 
 #TABLE 2
