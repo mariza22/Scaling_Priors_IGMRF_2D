@@ -7,6 +7,7 @@
 
 library(ggplot2)
 
+
 ####  IGMRF/random walks ####
 
 ############ 1 dimension IGMRF #########################
@@ -21,7 +22,7 @@ RW1 <- function(yr){                                                            
   EigenValGenInv                               <- 1/eigenNoData$val             # the inverse of the eigenvalues
   EigenValGenInv[yr]                           <- 0                             # setting the inverse eigenvalues =0 too
   SigmaGenInvNoTheta1                          <- eigenNoData$vec %*% (EigenValGenInv * t(eigenNoData$vec))# calculating the Sigma* matrix
-  #plot(log(diag(SigmaGenInvNoTheta1)),xlab = "Node i", ylab="log-Marginal Standard Deviation") #with log 
+  plot(log(diag(SigmaGenInvNoTheta1)),xlab = "Node i", ylab="log-Marginal Standard Deviation") #with log 
   #plot(diag(SigmaGenInvNoTheta1),xlab = "Node i", ylab="Marginal Standard Deviation")
   return(sigma_ref_rw1                         <- exp((1/yr)*sum(0.5*log(diag(SigmaGenInvNoTheta1)))) ) # page 5, calculating the Sigma reference
 }
@@ -37,7 +38,7 @@ RW2                                            <- function(yr){                 
   EigenValGenInv                               <- 1/eigenNoData$val             # the inverse of the eigenvalues
   EigenValGenInv[(yr-1):yr]                    <- 0                             # setting the inverse eigenvalues =0 too
   SigmaGenInvNoTheta2                          <- eigenNoData$vec %*% (EigenValGenInv * t(eigenNoData$vec)) # calculating the Sigma* matrix
-  #plot(log(diag(SigmaGenInvNoTheta2)),xlab = "Node i", ylab="log-Marginal Standard Deviation")
+  plot(log(diag(SigmaGenInvNoTheta2)),xlab = "Node i", ylab="log-Marginal Standard Deviation")
   #plot(diag(SigmaGenInvNoTheta2),xlab = "Node i", ylab="Marginal Standard Deviation")
   return(sigma_ref_rw2                         <- exp((1/yr)*sum(0.5*log(diag(SigmaGenInvNoTheta2)))) ) # page 5, calculating the Sigma reference
 }
@@ -72,15 +73,15 @@ RW2D                                                  <- function(yr){
   EigenValGenInv                                      <- 1/eigenNoData$val
   EigenValGenInv[(yr^2-2):(yr^2)]                     <- 0  
   SigmaGenInvNoTheta3                                 <- eigenNoData$vec %*% (EigenValGenInv * t(eigenNoData$vec))#calculate  Sigma* 
-  #plot(log(diag(SigmaGenInvNoTheta3)),xlab = "Node i", ylab="Marginal Standard Deviation")
+  plot(log(diag(SigmaGenInvNoTheta3)),xlab = "Node i", ylab="Marginal Standard Deviation")
   return(sigma_ref_rw2D <- exp((1/(yr^2))*sum(0.5*log(diag(SigmaGenInvNoTheta3)))) )  #calculate Sigma_ref
 }
 
 #Figure 1
 
-RW1(10)
-RW2(10)
-RW2D(10) #it takes time
+RW1(30)
+RW2(30)
+RW2D(30) #it takes time
 
 ## 2D Rue&Held, 1st suggestion (Torus 1)
 RW2D_1                                                <- function(yr){
@@ -200,13 +201,19 @@ gg                                                    <- ggplot(data=df, aes(x=N
   labs(title="",x="Nodes", y = "Standard Deviation")
 gg + theme(text = element_text(size = 15))    
 
-# TABLE 1
-for ( i in c(11,20,40)){#,100
-  print(RW2D_1(i) )
-  print(RW2D_2(i) )
-  print( RW2D(i)  )
-  print(RW2D_terz(i) )
-}
+# TABLE 1&2
+nodes     <- c(5,6,8,10,12,14,16,18,20,25,30,40)
+
+for ( i in nodes){
+  print(RW2D_1(i))        # 2D 2nd order torus 1
+  print(RW2D_2(i))        # 2D 2nd order torus 2
+  print( RW2D(i))         # 2D 2nd order bound 1
+  print(RW2D_terz(i))     # 2D 2nd order bound 2
+  
+  print(RW1(i) )          # 1D 1st order
+  print(RW2(i))           # 1D 2nd order
+  
+  }
 ## Section 4 ##
 ## setting number of nodes 40 we will implement the steps for scaling 
 # between the one- and two-dimensional second order random walk
@@ -215,7 +222,7 @@ yr                                                    <- 40                     
 s_RW2                                                 <- RW2(yr=yr)             # calculate the reference stndard deviation of second order 1D
 s_RW2D                                                <- RW2D(yr=yr)            # calculate the reference stndard deviation of second order 2D
 mu                                                    <- 7                      # initial mean value
-b                                                     <- 2                      # initial standard deviation
+b                                                     <- 2                      # initial standard deviation of the prior distribution
 alpha                                                 <- 0.001                  # quantile
 
 # upper limits of the table 10. The U formula is used
@@ -238,9 +245,11 @@ s_RW21                                                <- RW1(yr=20)
 s_RW22                                                <- RW2(yr=20)
 s_RW22D                                               <- RW2D(yr=20) 
 
+nodes                                                 <- c(5,6,8,10,12,14,16,18,20,25,30,40)
+
 #TABLE 3
 for ( i in c(1,2,3)){                               # different values of b: initial standard deviation
-  for ( j in c(5,11,20,40)){                        # values of nodes
+  for ( j in nodes){                        # values of nodes
     print(paste("b is: ",i))  
     print(paste("years are: ",j)) 
     s_RW1                                              <- RW1(yr=j) 
@@ -263,9 +272,11 @@ for ( i in c(1,2,3)){                               # different values of b: ini
 }
 #TABLE 4 
 
-k                <- 1;       m                         <- c(7,8,10,12)
-for ( i in c(0.9,1.2,1.59,3.55)){                      # different initial standard deviations that want scaling
-  j<- 11
+k                      <- 1               
+m                      <- c(7,8,10,12)  # different mean values for the 4 priors
+std                    <- c(0.9,1.2,1.59,3.55) # different standard deviations for the 4 priors
+j                      <- 11
+for ( i in std){                      # different initial standard deviations that want scaling
   print(paste("b is: ",i))  
   s_RW2                                                <- RW2(yr=j)
   s_RW2D                                               <- RW2D(yr=j) 
@@ -279,7 +290,7 @@ for ( i in c(0.9,1.2,1.59,3.55)){                      # different initial stand
   u                                                    <- round(summary(Us1)[[3]],3)
   b2_rw2                                               <- (u^2)*(qnorm(alpha,mean=mu, sd=1))/(s_RW2^2)
   b2_rw2D                                              <- (u^2)*(qnorm(alpha,mean=mu, sd=1))/(s_RW2D^2)
-  print(c(b2_rw2,b2_rw2D))
+  print(paste("the scaled std are:",c(b2_rw2,b2_rw2D)))
   k<-k+1
 }
 
